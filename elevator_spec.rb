@@ -68,38 +68,7 @@ RSpec.describe Elevator do
 
   end
 
-  describe "call" do
-    let(:elevator_instance) { Elevator.new }
-    subject { elevator_instance.call(5, :up) }
-
-    # context "requested floor not present in queue" do
-
-    #   it "adds the given floor to the end queue_of_requests" do
-    #     elevator_instance.queue_of_calls << 1
-    #     subject
-    #     expect(elevator_instance.queue_of_requests).to eq([1,5])
-    #   end
-
-    #   it "keeps the queue in oder when adding new stop requests" do 
-    #     elevator_instance.queue_of_requests += [1,2,6]
-    #     subject
-    #     expect(elevator_instance.queue_of_requests).to eq([1,2,5,6])
-    #   end
-
-    # end
-    
-    context "requested floor present in queue" do
-      let(:elevator_instance) { Elevator.new() }
-
-
-      it "does not add the floor to the queue_of_requests" do
-        elevator_instance.call(5, :up)
-        subject
-        expect(elevator_instance.queue_of_calls).to eq([5, :up])
-      end
-    end
-
-  end
+  
 
 
   describe "visit_next_floor" do 
