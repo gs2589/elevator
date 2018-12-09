@@ -8,7 +8,6 @@ class Elevator
 
   def request_stop(floor)
      queue_of_requests.include?(floor) ? return : queue_of_requests << floor
-     queue_of_requests.sort!
   end
 
   def visit_next_floor
