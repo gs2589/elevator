@@ -4,7 +4,7 @@ require 'pry'
 RSpec.describe Elevator do 
 
   describe "current_floor" do
-    let(:elevator_instance) { Elevator.new }
+    let(:elevator_instance) { Elevator.new(10) }
     subject { elevator_instance.current_floor }
 
     it "returns the default floor for a newly initialized instance" do 
@@ -20,7 +20,7 @@ RSpec.describe Elevator do
   end
 
   describe "queue_of_requests" do
-    let(:elevator_instance) { Elevator.new }
+    let(:elevator_instance) { Elevator.new(10) }
     subject { elevator_instance.queue_of_requests }
 
     it "returns an empty queue for a newly initialized instance" do 
@@ -36,7 +36,7 @@ RSpec.describe Elevator do
   end
 
   describe "request_stop" do
-    let(:elevator_instance) { Elevator.new }
+    let(:elevator_instance) { Elevator.new(10) }
     subject { elevator_instance.request_stop(5) }
 
     context "requested floor not present in queue" do
@@ -56,7 +56,7 @@ RSpec.describe Elevator do
     end
     
     context "requested floor present in queue" do
-      let(:elevator_instance) { Elevator.new() }
+      let(:elevator_instance) { Elevator.new(10) }
 
 
       it "does not add the floor to the queue_of_requests" do
@@ -68,11 +68,64 @@ RSpec.describe Elevator do
 
   end
 
-  
+  describe "call" do
+    let(:elevator_instance) { Elevator.new(10) }
+    let(:floor) {floor}
+    let(:direction) {direction}
+    subject { elevator_instance.call(:floor, :direction) }
+
+    context "requested floor and direction not present in queue" do
+
+      it "can keep track of the floor" do
+        floor = 5
+        direction = :up
+        subject
+        expect(elevator_instance.queue_of_requests[5]).to eq([:up])
+      end
+
+      it "can keep track of the direction with a downward request" do
+        floor = 5
+        direction = :down
+        subject
+        expect(elevator_instance.queue_of_requests).to eq([nil, :none, :none, :none, :none, :down])
+      end
+
+      it "can keep track of the direction with an upward request" do
+        floor = 5
+        direction = :up
+        subject
+        expect(elevator_instance.queue_of_requests).to eq([nil, :none, :none, :none, :none, :down])
+      end
+
+      it "can keep track of the direction with two request, one upward one downward" do
+        floor = 5
+        direction = :up
+        subject
+        floor = 5
+        direction = :down
+        expect(elevator_instance.queue_of_requests).to eq([nil, :none, :none, :none, :none, :both])
+      end
+
+    end
+    
+    context "requested floor and direction present in queue" do
+      let(:elevator_instance) { Elevator.new(10) }
+
+
+      it "does not add the floor to the queue_of_requests" do
+        elevator_instance.call(5, :up)
+        floor = 5
+        direction = :up
+        subject
+        expect(elevator_instance.queue_of_calls).to eq([5, :up])
+      end
+    end
+
+  end
 
 
   describe "visit_next_floor" do 
-    let(:elevator_instance) { Elevator.new }
+    let(:elevator_instance) { Elevator.new(10) }
     subject { elevator_instance.visit_next_floor }
    
     context "queue_of_requests is empty" do 
