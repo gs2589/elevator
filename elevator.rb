@@ -4,14 +4,14 @@ class Elevator
 
   def initialize(floors)
     @current_floor = 1
-    @queue_of_requests = []
+    @queue_of_requests = Array.new(floors + 1, :none)
     @queue_of_calls = Array.new(floors + 1, :none)
     @queue_of_calls[0] = nil
+    @queue_of_requests[0] = nil
   end
 
   def request_stop(floor)
-    queue_of_requests.include?(floor) ? return : queue_of_requests << floor
-    queue_of_requests.sort!
+    queue_of_requests[floor] = :stop
   end
 
   def call (floor, direction)

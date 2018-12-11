@@ -20,49 +20,40 @@ RSpec.describe Elevator do
   end
 
   describe "queue_of_requests" do
-    let(:elevator_instance) { Elevator.new(10) }
+    let(:elevator_instance) { Elevator.new(6) }
     subject { elevator_instance.queue_of_requests }
 
-    it "returns an empty queue for a newly initialized instance" do 
+    it "returns an `empty` queue for a newly initialized instance" do 
       elevator_instance
-      expect(subject).to eq([])
+      expect(subject).to eq([nil, :none, :none, :none, :none, :none, :none])
     end
 
     it "it returns an updated queue when items have been added" do 
-      elevator_instance.queue_of_requests<<5
-      expect(subject).to eq([5])
+      elevator_instance.queue_of_requests = [nil, :none, :none, :up, :none, :none, :none]
+      expect(subject).to eq([nil, :none, :none, :up, :none, :none, :none])
     end
 
   end
 
   describe "request_stop" do
-    let(:elevator_instance) { Elevator.new(10) }
+    let(:elevator_instance) { Elevator.new(6) }
     subject { elevator_instance.request_stop(5) }
 
     context "requested floor not present in queue" do
 
       it "adds the given floor" do
-        elevator_instance.queue_of_requests << 1
         subject
-        expect(elevator_instance.queue_of_requests).to include(5)
-      end
-
-      it "keeps the queue in oder when adding new stop requests" do 
-        elevator_instance.queue_of_requests += [1,2,6]
-        subject
-        expect(elevator_instance.queue_of_requests).to eq([1,2,5,6])
+        expect(elevator_instance.queue_of_requests).to eq([nil, :none, :none, :none, :none, :stop, :none])
       end
 
     end
     
     context "requested floor present in queue" do
-      let(:elevator_instance) { Elevator.new(10) }
+      let(:elevator_instance) { Elevator.new(6) }
 
-
-      it "does not add the floor to the queue_of_requests" do
-        elevator_instance.queue_of_requests << 5
-        subject
-        expect(elevator_instance.queue_of_requests).to eq([5])
+      it "does nothing" do
+        elevator_instance.queue_of_requests = [nil, :none, :none, :up, :none, :stop, :none]
+        expect { subject }.to_not change {elevator_instance.queue_of_requests}
       end
     end
 
