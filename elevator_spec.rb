@@ -1,20 +1,36 @@
 require "./elevator.rb"
 require 'pry'
 
-RSpec.describe Elevator do 
+RSpec.describe Elevator do
 
   describe "current_floor" do
-    let(:elevator_instance) { Elevator.new(10) }
+    let(:elevator_instance) { Elevator.new(6) }
     subject { elevator_instance.current_floor }
 
-    it "returns the default floor for a newly initialized instance" do 
+    it "returns the default floor for a newly initialized instance" do
       elevator_instance
       expect(subject).to eq(1)
     end
 
-    it "returns the current floor after it is updated" do 
+    it "returns the current floor after it is updated" do
       elevator_instance.current_floor = 5
       expect(subject).to eq(5)
+    end
+
+  end
+
+  describe "current_direction" do
+    let(:elevator_instance) { Elevator.new(6) }
+    subject { elevator_instance.current_direction }
+
+    it "returns the default direction for a newly initialized instance" do
+      elevator_instance
+      expect(subject).to eq(:rest)
+    end
+
+    it "returns the current direction after it is updated" do
+      elevator_instance.current_direction = :up
+      expect(subject).to eq(:up)
     end
 
   end
@@ -23,12 +39,12 @@ RSpec.describe Elevator do
     let(:elevator_instance) { Elevator.new(6) }
     subject { elevator_instance.queue_of_requests }
 
-    it "returns an `empty` queue for a newly initialized instance" do 
+    it "returns an `empty` queue for a newly initialized instance" do
       elevator_instance
       expect(subject).to eq([nil, :none, :none, :none, :none, :none, :none])
     end
 
-    it "it returns an updated queue when items have been added" do 
+    it "it returns an updated queue when items have been added" do
       elevator_instance.queue_of_requests = [nil, :none, :none, :up, :none, :none, :none]
       expect(subject).to eq([nil, :none, :none, :up, :none, :none, :none])
     end
@@ -67,7 +83,7 @@ RSpec.describe Elevator do
       context "downward request" do
         let(:floor){ 5 }
         let(:direction){ :down }
-        
+
         it "can keep track of the direction" do
           subject
           expect(elevator_instance.queue_of_calls).to eq([nil, :none, :none, :none, :none, :down, :none])
@@ -77,7 +93,7 @@ RSpec.describe Elevator do
       context "upward request" do
         let(:floor){ 5 }
         let(:direction){ :up }
-        
+
         it "can keep track of the direction" do
           subject
           expect(elevator_instance.queue_of_calls).to eq([nil, :none, :none, :none, :none, :up, :none])
@@ -87,7 +103,7 @@ RSpec.describe Elevator do
       context "two requests, upward then downward" do
         let(:floor){ 5 }
         let(:direction){ :down }
-        
+
         it "can keep track of both directions" do
           elevator_instance.call(5, :up)
           subject
@@ -98,7 +114,7 @@ RSpec.describe Elevator do
       context "two requests, downward then upward" do
         let(:floor){ 5 }
         let(:direction){ :down }
-        
+
         it "can keep track of both directions" do
           elevator_instance.call(5, :up)
           subject
@@ -122,33 +138,108 @@ RSpec.describe Elevator do
   end
 
 
-  describe "visit_next_floor" do 
-    let(:elevator_instance) { Elevator.new(10) }
+  describe "visit_next_floor" do
+    let(:elevator_instance) { Elevator.new(6) }
     subject { elevator_instance.visit_next_floor }
    
-    context "queue_of_requests is empty" do 
+    context "there are requests in the queue_of_request but not in the queue_of_calls " do
+      before do
+        elevator_instance.queue_of_requests = [nil, :stop, :none, :none, :none, :stop, :none]
+      end
+      
+      context "the elevator is not past the floor of the request in the queue_of_requests" do
+        before do
+          elevator_instance.current_floor = 6
+          elevator_instance.current_direction = :down
+        end
+      
+        it "updates the position of the elevator" do
+          subject
+          expect(elevator_instance.current_floor).to eq(5)
+        end
+
+        it "updates queues removing visited floors" do
+          expect(elevator_instance.queue_of_requests[5]).to eq(:stop)
+          subject
+          expect(elevator_instance.queue_of_requests[5]).to eq(:none)
+        end
+      end
+
+      context "the elevator is past the floor of the request in the queue_of_requests " do
+        before do
+          elevator_instance.current_floor = 3
+          elevator_instance.current_direction = :up
+        end
+
+        it "visits all floors that the elevator has not passed before visiting the floor that is past" do
+          subject 
+          expect(elevator_instance.current_floor).to eq(5)
+          subject
+          expect(elevator_instance.current_floor).to eq(1)
+        end
+      end
+    end
+
+
+    context "there are requests in the queue_of_calls but not in the queue_of_requests" do
+        
+      context "the request in the queue_of_calls are not in the direction the elevator is traveling" do
+      end
+
+        context "the requests in the queue_of_calls are in the direction the elevator is traveling" do
+          
+          context "the elevator is past the floor of the request in the queue_of_calls " do
+            
+            it "visits all floors that the elevator has not passed before visiting the floor that is past" do
+              skip
+            end 
+          
+          end
+
+          context "the elevator is not past the floor of the request in the queue_of_requests" do
+
+            it "updates the position of the elevator" do
+              skip
+            end
+
+            it "updates both queues removing visited floors" do
+              skip
+            end
+          end
+        end
+    end
+
+    context "the are requests in both of the queues" do
+      
+      it "updates the position of the elevator" do
+        skip
+      end
+
+      it "updates both queues removing visited floors" do
+        skip
+      end
+
+    end
+
+    context "the elevator reaches the highest floor in the queues" do
+
+    end
+
+    context "the elevator reaches the lowes floor in the queues" do
+
+    end
+
+    context "both queues are empty" do
+      before do
+        elevator_instance.queue_of_requests = [nil, :none, :none, :none, :none, :none, :none]
+      end 
+
 
       it "does not change the current_floor of the elevator" do
-        elevator_instance.queue_of_requests = []
-        expect{ (subject) }.to_not change{ elevator_instance.current_floor }
+        skip
+        expect{ subject }.to_not change{ elevator_instance.current_floor }
       end
     end
-
-    context "queue_of_requests is not empty" do
-      
-      it "changes the current_floor of the elevator to the first item in the queue" do
-        elevator_instance.queue_of_requests = [5]
-        expect{ (subject) }.to change{ elevator_instance.current_floor }.to(5)
-      end
-
-      it "removes the first item in the queue_of_requests " do
-        elevator_instance.queue_of_requests = [5,1,6]
-        subject
-        expect(elevator_instance.queue_of_requests).to eq([1,6])
-
-      end
-    end
-
   end
 
 end
