@@ -24,24 +24,48 @@ class Elevator
   end
 
   def visit_next_floor
-    if [:up, :rest].include?(current_direction)
-      next_stop = self.current_floor + queue_of_requests[self.current_floor..floors].index do |floor|
-                    floor == :stop
-                  end
-    elsif [:down].include?(current_direction)
-      next_stop = queue_of_requests[0..self.current_floor].rindex do |floor|
-                    floor == :stop
-                  end
-    end
+    set_new_direction
 
-    if !next_stop.nil?
-      self.current_floor = next_stop
-      queue_of_requests[next_stop] = :none
+    case current_direction
+      when :up
+        next_stop = next_request_above
+      when :down
+        next_stop = next_request_below
+      when :rest
+        return
     end
-
+      
+    self.current_floor = next_stop
+    queue_of_requests[next_stop] = :none
   end
 
+  def set_new_direction
+    case self.current_direction
+      when :up
+        self.current_direction = :rest unless next_request_above
+      when :down
+        self.current_direction = :rest unless next_request_below
+    end
+    if self.current_direction == :rest
+        self.current_direction = :up if next_request_above
+        self.current_direction = :down if next_request_below  
+    end
+  end
+
+
   private
+
+  def next_request_above
+     queue_of_requests[self.current_floor..floors].index do |floor|
+                    floor == :stop
+                  end&.+ self.current_floor
+  end
+
+  def next_request_below
+    queue_of_requests[0..self.current_floor].rindex do |floor|
+                    floor == :stop
+                  end
+  end
 
   def direction_after_call(existing_direction, call_direction)
     case existing_direction

@@ -171,8 +171,8 @@ RSpec.describe Elevator do
           elevator_instance.current_direction = :up
         end
 
-        it "visits all floors that the elevator has not passed before visiting the floor that is past" do
-          subject 
+        it "visits all floors that the elevator has not passed before visiting the floor that it passed" do
+          elevator_instance.visit_next_floor 
           expect(elevator_instance.current_floor).to eq(5)
           subject
           expect(elevator_instance.current_floor).to eq(1)
