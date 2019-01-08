@@ -181,32 +181,79 @@ RSpec.describe Elevator do
     end
 
 
-    context "there are requests in the queue_of_calls but not in the queue_of_requests" do
-        
-      context "the request in the queue_of_calls are not in the direction the elevator is traveling" do
-      end
+    context "there are calls in the queue_of_calls but not in the queue_of_requests" do
 
-        context "the requests in the queue_of_calls are in the direction the elevator is traveling" do
-          
-          context "the elevator is past the floor of the request in the queue_of_calls " do
-            
-            it "visits all floors that the elevator has not passed before visiting the floor that is past" do
-              skip
-            end 
-          
-          end
+      context "the requests in the queue_of_calls are in the direction the elevator is traveling" do
 
           context "the elevator is not past the floor of the request in the queue_of_requests" do
-
+            before do
+              elevator_instance.current_floor = 6
+              elevator_instance.current_direction = :down
+              elevator_instance.queue_of_calls = [nil, :none, :down, :none, :none, :none, :none]
+            end
+            
             it "updates the position of the elevator" do
-              skip
+              expect { subject }.to change { elevator_instance.current_floor }.from(6).to(2)
             end
 
-            it "updates both queues removing visited floors" do
-              skip
+            it "updates queue removing visited floors" do
+              subject
+              expect(elevator_instance.queue_of_calls).to eq([nil, :none, :none, :none, :none, :none, :none])
             end
           end
+          
+          context "the elevator is past the floor of the request in the queue_of_calls " do
+            before do
+              elevator_instance.current_floor = 4
+              elevator_instance.current_direction = :down
+              elevator_instance.queue_of_calls = [nil, :up, :none, :none, :none, :down, :none]
+            end
+
+            it "visits all floors that the elevator has not passed before visiting the floor that is past" do
+              elevator_instance.visit_next_floor 
+              expect(elevator_instance.current_floor).to eq(1)
+              subject
+              expect(elevator_instance.current_floor).to eq(5)
+            end 
+          end
+      end
+
+    context "the requests in the queue_of_calls are in both directions" do
+      before do
+              elevator_instance.current_floor = 6
+              elevator_instance.current_direction = :down
+              elevator_instance.queue_of_calls = [nil, :none, :none, :both, :none, :none, :none]
+      end
+            
+      it "updates the position of the elevator" do
+        expect { subject }.to change { elevator_instance.current_floor }.from(6).to(3)
+      end
+
+      it "updates queue removing visited floors" do
+        subject
+        expect(elevator_instance.queue_of_calls).to eq([nil, :none, :none, :up, :none, :none, :none])
+      end
+        
+    end
+
+    context "there are calls in the queue_of_calls that are not in the direction the elevator is traveling" do
+        before do
+          elevator_instance.current_floor = 6
+          elevator_instance.current_direction = :down
+          elevator_instance.queue_of_calls = [nil, :none, :down, :none, :none, :up, :none]
         end
+
+        it "does not remove calls in the opposite direction" do
+            expect {subject}.to_not change{ elevator_instance.queue_of_requests[5] }
+            expect(elevator_instance.current_floor).to eq(2)
+        end
+
+        it "moves to the next call that is in the correct direction " do
+            expect {subject}.to_not change{ elevator_instance.queue_of_requests[5] }
+            expect(elevator_instance.current_floor).to eq(2)
+        end
+      
+      end
     end
 
     context "the are requests in both of the queues" do
@@ -225,7 +272,7 @@ RSpec.describe Elevator do
 
     end
 
-    context "the elevator reaches the lowes floor in the queues" do
+    context "the elevator reaches the lowest floor in the queues" do
 
     end
 
