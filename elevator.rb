@@ -24,21 +24,24 @@ class Elevator
   end
 
   def visit_next_floor
-    binding.pry
     set_new_direction
 
     case current_direction
       when :up
         next_stop = next_stop_above
+        update_queue_of_calls = next_stop == next_call_above
       when :down
         next_stop = next_stop_below
+        update_queue_of_calls = next_stop == next_call_below
       when :rest
         return
     end
       
     self.current_floor = next_stop
     queue_of_requests[next_stop] = :none
-    queue_of_calls[next_stop] = direction_after_stop(queue_of_calls[next_stop])
+    if update_queue_of_calls
+      queue_of_calls[next_stop] = direction_after_stop(queue_of_calls[next_stop])
+    end
   end
 
   def set_new_direction
@@ -112,7 +115,7 @@ class Elevator
 
   def direction_after_stop(existing_direction)
     case existing_direction
-      when self.current_direction, :none
+      when :up, :down, :none
         :none
       when :both
         (CALL_VALUES - [:none, :both, self.current_direction]).first

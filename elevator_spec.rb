@@ -215,6 +215,12 @@ RSpec.describe Elevator do
               subject
               expect(elevator_instance.current_floor).to eq(5)
             end 
+
+            it "updates the position of the elevator" do
+              elevator_instance.visit_next_floor 
+              subject
+              expect(elevator_instance.queue_of_calls).to eq([nil, :none, :none, :none, :none, :none, :none])
+            end
           end
       end
 
@@ -232,8 +238,7 @@ RSpec.describe Elevator do
       it "updates queue removing visited floors" do
         subject
         expect(elevator_instance.queue_of_calls).to eq([nil, :none, :none, :up, :none, :none, :none])
-      end
-        
+      end      
     end
 
     context "there are calls in the queue_of_calls that are not in the direction the elevator is traveling" do
@@ -251,29 +256,77 @@ RSpec.describe Elevator do
         it "moves to the next call that is in the correct direction " do
             expect {subject}.to_not change{ elevator_instance.queue_of_requests[5] }
             expect(elevator_instance.current_floor).to eq(2)
-        end
-      
+        end 
       end
     end
 
     context "the are requests in both of the queues" do
-      
-      it "updates the position of the elevator" do
-        skip
+
+      context "a request in the queue of requests and a call in the queue of calls in opposite direction as travel" do
+        before do
+          elevator_instance.current_floor = 6
+          elevator_instance.current_direction = :down
+          elevator_instance.queue_of_calls = [nil, :none, :down, :none, :none, :up, :none]
+          elevator_instance.queue_of_requests = [nil, :none, :none, :none, :none, :stop, :none]
+        end
+
+        it "updates the position of the elevator" do
+          expect{ subject }.to change{ elevator_instance.current_floor}.from(6).to(5)
+        end
+
+        it "updates queue of request but not queue of calls removing" do
+          subject
+          expect(elevator_instance.queue_of_calls).to eq([nil, :none, :down, :none, :none, :up, :none])
+          elevator_instance.queue_of_requests = [nil, :none, :none, :none, :none, :none, :none]
+        end
       end
 
-      it "updates both queues removing visited floors" do
-        skip
+      context "a request in the queue of requests and a call in the queue of calls in same direction as travel" do
+        before do
+          elevator_instance.current_floor = 6
+          elevator_instance.current_direction = :down
+          elevator_instance.queue_of_calls = [nil, :none, :down, :none, :none, :down, :none]
+          elevator_instance.queue_of_requests = [nil, :none, :none, :none, :none, :stop, :none]
+        end
+
+        it "updates the position of the elevator" do
+          expect{ subject }.to change{ elevator_instance.current_floor}.from(6).to(5)
+        end
+
+        it "updates both queues removing visited floors" do
+          subject
+          expect(elevator_instance.queue_of_calls).to eq([nil, :none, :down, :none, :none, :none, :none])
+          elevator_instance.queue_of_requests = [nil, :none, :none, :none, :none, :none, :none]
+        end
       end
 
-    end
+      context "the last request in the calls queue is in the opposite direction, the last request is above it" do
+        before do
+            elevator_instance.current_floor = 2
+            elevator_instance.current_direction = :up
+            elevator_instance.queue_of_calls = [nil, :none, :none, :none, :none, :down, :none]
+            elevator_instance.queue_of_requests = [nil, :none, :none, :none, :none, :none, :stop]
+        end
 
-    context "the elevator reaches the highest floor in the queues" do
+        it "does not stop in the floor of the request" do
+            expect{ subject }.to change{ elevator_instance.current_floor}.from(2).to(6)
+        end
 
-    end
+        it "does not update the queue_of_calls" do
+            subject
+            expect(elevator_instance.queue_of_calls).to eq([nil, :none, :none, :none, :none, :down, :none])
+        end
 
-    context "the elevator reaches the lowest floor in the queues" do
+        it "updates the queue_of_requests" do
+            subject
+            expect(elevator_instance.queue_of_requests).to eq([nil, :none, :none, :none, :none, :none, :none])
+        end
 
+      end
+
+      context "the elevator reaches the lowest floor in the queues" do
+
+      end
     end
 
     context "both queues are empty" do
