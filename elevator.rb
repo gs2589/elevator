@@ -89,7 +89,7 @@ class Elevator
       [:down].include? floor 
     end&.+ self.current_floor
 
-    next_call || last_call
+    next_call || (last_call unless next_request_above)
   end
 
   def next_call_below
@@ -101,8 +101,9 @@ class Elevator
       [:up].include? floor
     end
 
-    next_call || last_call
+    next_call || (last_call unless next_request_below)
   end
+
 
   def direction_after_call(existing_direction, call_direction)
     case existing_direction

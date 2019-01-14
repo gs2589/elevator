@@ -300,7 +300,7 @@ RSpec.describe Elevator do
         end
       end
 
-      context "the last request in the calls queue is in the opposite direction, the last request is above it" do
+      context "the highest request in the calls queue is downward when the last request is above it" do
         before do
             elevator_instance.current_floor = 2
             elevator_instance.current_direction = :up
@@ -324,20 +324,90 @@ RSpec.describe Elevator do
 
       end
 
-      context "the elevator reaches the lowest floor in the queues" do
+      context "the lowest request in the calls queue is upward when the last request is below it" do
+        before do
+            elevator_instance.current_floor = 6
+            elevator_instance.current_direction = :down
+            elevator_instance.queue_of_calls = [nil, :none, :up, :none, :none, :none, :none]
+            elevator_instance.queue_of_requests = [nil, :stop, :none, :none, :none, :none, :none]
+        end
+
+        it "does not stop in the floor of the request" do
+            expect{ subject }.to change{ elevator_instance.current_floor}.from(6).to(1)
+        end
+
+        it "does not update the queue_of_calls" do
+            subject
+            expect(elevator_instance.queue_of_calls).to eq([nil, :none, :up, :none, :none, :none, :none])
+        end
+
+        it "updates the queue_of_requests" do
+            subject
+            expect(elevator_instance.queue_of_requests).to eq([nil, :none, :none, :none, :none, :none, :none])
+        end
+
+      end
+
+      context "the highest request in the calls queue is downward when there is no request above it" do
+        before do
+            elevator_instance.current_floor = 2
+            elevator_instance.current_direction = :up
+            elevator_instance.queue_of_calls = [nil, :none, :none, :none, :none, :down, :none]
+            elevator_instance.queue_of_requests = [nil, :none, :none, :none, :none, :none, :none]
+        end
+
+        it "does  stop in the floor of the request" do
+            expect{ subject }.to change{ elevator_instance.current_floor}.from(2).to(5)
+        end
+
+        it "does update the queue_of_calls" do
+            subject
+            expect(elevator_instance.queue_of_calls).to eq([nil, :none, :none, :none, :none, :none, :none])
+        end
+
+      end
+
+      context "the lowest request in the calls queue is upward when there is not request below it" do
+        before do
+            elevator_instance.current_floor = 6
+            elevator_instance.current_direction = :down
+            elevator_instance.queue_of_calls = [nil, :none, :up, :none, :none, :none, :none]
+            elevator_instance.queue_of_requests = [nil, :none, :none, :none, :none, :none, :none]
+        end
+
+        it "does  stop in the floor of the request" do
+            expect{ subject }.to change{ elevator_instance.current_floor}.from(6).to(2)
+        end
+
+        it "does update the queue_of_calls" do
+            subject
+            expect(elevator_instance.queue_of_calls).to eq([nil, :none, :none, :none, :none, :none, :none])
+        end
+
 
       end
     end
 
     context "both queues are empty" do
       before do
+        elevator_instance.current_floor = 2
+        elevator_instance.current_direction = :up
         elevator_instance.queue_of_requests = [nil, :none, :none, :none, :none, :none, :none]
+        elevator_instance.queue_of_calls = [nil, :none, :none, :none, :none, :none, :none]
       end 
 
-
       it "does not change the current_floor of the elevator" do
-        skip
         expect{ subject }.to_not change{ elevator_instance.current_floor }
+      end
+
+      it "does not change either queues" do
+        subject
+        expect(elevator_instance.queue_of_calls).to eq([nil, :none, :none, :none, :none, :none, :none])
+        expect(elevator_instance.queue_of_requests).to eq([nil, :none, :none, :none, :none, :none, :none])
+      end
+
+      it "sets the current direction to rest" do
+        expect{ subject }.to change{ elevator_instance.current_direction }.from(:up).to(:rest)
       end
     end
   end
